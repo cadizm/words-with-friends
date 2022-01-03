@@ -4,3 +4,8 @@ all:
 
 run:
 	docker run words
+
+push:
+	docker push cadizm/words:latest
+
+.PHONY: all run push

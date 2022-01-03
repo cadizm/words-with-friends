@@ -1,4 +1,3 @@
-
 from collections import defaultdict
 import string
 
@@ -73,4 +72,4 @@ if __name__ == '__main__':
 
     for word in words:
         for w in find_words(word, D):
-            print len(w), w
+            print(len(w), w)
