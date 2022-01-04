@@ -1,9 +1,9 @@
 from collections import defaultdict
-import string
+from string import ascii_lowercase
 
 
-def dictify(sequence):
-    "map letter to num occurrences"
+def occ(sequence):
+    "Map char in sequence to its num of occurrences"
     res = defaultdict(int)
 
     for letter in sequence:
@@ -12,8 +12,8 @@ def dictify(sequence):
     return res
 
 
-def lookupify(dictfile='/usr/share/dict/words'):
-    "map n to words with length n"
+def lookupify(dictfile):
+    "Map n to list of words of length n"
     res = defaultdict(list)
 
     with open(dictfile) as f:
@@ -24,32 +24,40 @@ def lookupify(dictfile='/usr/share/dict/words'):
     return res
 
 
-def dict_subset(needle, haystack):
-    "return True if needle is a `dict subset' of haystack, False otherwise"
+def has_occ(needle, haystack):
+    """
+    Return true if for each key in needle:
+        haystack[key] >= needle[key]
+
+    Return False otherwise
+    """
 
     for k in needle:
-        if k not in haystack:
-            return False
-        else:
-            haystack[k] -= needle[k]
-
-        if haystack[k] < 0:
+        if k not in haystack or haystack[k] < needle[k]:
             return False
 
     return True
 
 
-def find_words(letters, D=None):
-    D = D or lookupify()
+table = lookupify('enable1.txt')
+
+
+def find_words(letters, blanks):
+    global table
     res = set()
 
     for i in range(2, len(letters) + 1):
-        for w in D[i]:
-            # dictify faster than deepcopy
-            if dict_subset(dictify(w), dictify(letters)):
-                if w not in res:
-                    res.add(w)
-                    yield w
+        for w in table[i]:
+            # occ faster than deepcopy
+            if has_occ(occ(w), occ(letters)):
+                res.add(w)
+
+    # as of now, too slow for anything other than 1 blank
+    if 0 < blanks < 2:
+        for c in ascii_lowercase:
+            res = res.union(find_words(letters + [c], blanks - 1))
+
+    return res
 
 
 if __name__ == '__main__':
@@ -58,18 +66,9 @@ if __name__ == '__main__':
         word = sys.argv[1]
     except:
         word = 'rottedi'
-    letters = list(word)
 
-    D = lookupify('enable1.txt')
+    letters = list(filter(lambda x: x != ' ', word))
+    blanks = len(word) - len(letters)
 
-    # only handles when blank for now
-    if ' ' in word:
-        words = []
-        for letter in string.lowercase:
-            words.append(word.replace(' ', letter))
-    else:
-        words = [word]
-
-    for word in words:
-        for w in find_words(word, D):
-            print(len(w), w)
+    for w in sorted(find_words(letters, blanks), key=lambda x: (len(x), x)):
+        print(len(w), w)
