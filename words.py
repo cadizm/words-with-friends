@@ -1,5 +1,5 @@
 from collections import defaultdict
-import string
+from string import ascii_lowercase
 
 
 def occ(sequence):
@@ -42,7 +42,7 @@ def has_occ(needle, haystack):
 table = lookupify('enable1.txt')
 
 
-def find_words(letters):
+def find_words(letters, blanks):
     global table
     res = set()
 
@@ -50,9 +50,14 @@ def find_words(letters):
         for w in table[i]:
             # occ faster than deepcopy
             if has_occ(occ(w), occ(letters)):
-                res.add((len(w), w))
+                res.add(w)
 
-    return sorted(res, key=lambda x:(x[0], x[1]))
+    # as of now, too slow for anything other than 1 blank
+    if 0 < blanks < 2:
+        for c in ascii_lowercase:
+            res = res.union(find_words(letters + [c], blanks - 1))
+
+    return res
 
 
 if __name__ == '__main__':
@@ -65,5 +70,5 @@ if __name__ == '__main__':
     letters = list(filter(lambda x: x != ' ', word))
     blanks = len(word) - len(letters)
 
-    for n, w in find_words(letters):
-        print(n, w)
+    for w in sorted(find_words(letters, blanks), key=lambda x: (len(x), x)):
+        print(len(w), w)
