@@ -1,1 +1,1 @@
-from .words import find_words
+from .words import find_words, table
